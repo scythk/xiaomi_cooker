@@ -131,7 +131,8 @@ def setup(hass, config):
             raise PlatformNotReady
 
     if model in SUPPORTED_MODELS:
-        from miio import Cooker, MultiCooker
+        from miio import Cooker
+        from .cooker_multi import MultiCooker
 
         if model == MODEL_MULTI:
             cooker = MultiCooker(host, token)
