@@ -1,12 +1,8 @@
 # Xiaomi Mi Electric Rice Cooker
 
-![GitHub actions](https://github.com/syssi/xiaomi_cooker/actions/workflows/ci.yaml/badge.svg)
-![GitHub stars](https://img.shields.io/github/stars/syssi/xiaomi_cooker)
-![GitHub forks](https://img.shields.io/github/forks/syssi/xiaomi_cooker)
-![GitHub watchers](https://img.shields.io/github/watchers/syssi/xiaomi_cooker)
-[!["Buy Me A Coffee"](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/syssi)
-
 This is a custom component for home assistant to integrate the Xiaomi Mi Electric Rice Cooker V2.
+
+Added chunmi.cooker.eh1 support ([sschirr/xiaomi_cooker](https://github.com/sschirr/xiaomi_cooker)) and local Multicooker support ([liangleslie/xiaomi_cooker](https://github.com/liangleslie/xiaomi_cooker)).
 
 Please follow the instructions on [Retrieving the Access Token](https://home-assistant.io/components/xiaomi/#retrieving-the-access-token) to get the API token to use in the configuration.yaml file.
 
@@ -32,36 +28,34 @@ Credits: Thanks to [Rytilahti](https://github.com/rytilahti/python-miio) for all
 * Start cooking a profile
 * Stop cooking
 * Sensors
-  - mode
-  - menu
-  - temperature
-  - remaining
-  - duration
-  - favorite
-  - state (available while cooking)
-  - rice_id (available while cooking)
-  - taste (available while cooking)
-  - taste_phase (available while cooking)
-  - stage_name (available while cooking)
-  - stage_description (available while cooking)
+  * mode
+  * menu
+  * temperature
+  * remaining
+  * duration
+  * favorite
+  * state (available while cooking)
+  * rice_id (available while cooking)
+  * taste (available while cooking)
+  * taste_phase (available while cooking)
+  * stage_name (available while cooking)
+  * stage_description (available while cooking)
 * Switches
-  - TODO: Start/Stop is possible if a default profile is available (Recipe input_select?)
-  - TODO: Buzzer on/off
-  - TODO: Turn off the backlight on idle
+  * TODO: Start/Stop is possible if a default profile is available (Recipe input_select?)
+  * TODO: Buzzer on/off
+  * TODO: Turn off the backlight on idle
 * Chart
-  - TODO: Temperature History (Like the temperature chart of the weather forecast)
+  * TODO: Temperature History (Like the temperature chart of the weather forecast)
 * Services
-  - TODO: stop_outdated_firmware
-  - TODO: set_no_warnings / set_acknowledge
-  - TODO: set_interaction
-  - TODO: set_menu
-  - TODO: get_temperature_history
-
+  * TODO: stop_outdated_firmware
+  * TODO: set_no_warnings / set_acknowledge
+  * TODO: set_interaction
+  * TODO: set_menu
+  * TODO: get_temperature_history
 
 ## Install
 
 You can install this custom component by adding this repository ([https://github.com/syssi/xiaomi_cooker](https://github.com/syssi/xiaomi_cooker/)) to [HACS](https://hacs.xyz/) in the settings menu of HACS first. You will find the custom component in the integration menu afterwards, look for 'Xiaomi Mi Electric Rice Cooker Integration'. Alternatively, you can install it manually by copying the custom_component folder to your Home Assistant configuration folder.
-
 
 ## Setup
 
@@ -70,8 +64,8 @@ You can install this custom component by adding this repository ([https://github
 
 xiaomi_miio_cooker:
   name: Xiaomi Rice Cooker
-  host: 192.168.130.88
-  token: b7c4a758c251955d2c24b1d9e41ce47d
+  host: !secret xiaomi_cooker_host
+  token: !secret xiaomi_cooker_token
   model: chunmi.cooker.normal2
 
 # template switch example to start a specific cooking profile
@@ -89,10 +83,10 @@ switch:
 ```
 
 Configuration variables:
-- **host** (*Required*): The IP of your cooker.
-- **token** (*Required*): The API token of your cooker.
-- **name** (*Optional*): The name of your cooker.
-- **model** (*Optional*): The model of your device. Valid values are `chunmi.cooker.normal2` and `chunmi.cooker.normal5`. This setting can be used to bypass the device model detection and is recommended if your device isn't always available.
+* **host** (*Required*): The IP of your cooker.
+* **token** (*Required*): The API token of your cooker.
+* **name** (*Optional*): The name of your cooker.
+* **model** (*Optional*): The model of your device. Valid values are `chunmi.cooker.normal2` and `chunmi.cooker.normal5`. This setting can be used to bypass the device model detection and is recommended if your device isn't always available.
 
 ## Lovelace
 
@@ -154,13 +148,14 @@ icon_height: 40px
 ![Lovelace button to start cooking](lovelace-button-start-cooking.png "lovelace button")
 
 ## Advanced Setup Example (only chunmi.cooker.eh1) [WIP]
+
 The following is an advanced example for a configuration of chunmi.cooker.eh1 supporting the following:
 
-- Show current cooker status: mode, temp, cooking time
-- Start the cooker
-  - with cooking profile selection
-  - with optional schedule
-- Stop the cooker
+* Show current cooker status: mode, temp, cooking time
+* Start the cooker
+  * with cooking profile selection
+  * with optional schedule
+* Stop the cooker
 
 ![Lovelace button to start cooking](lovelace_advanced_example_multi_cooker_0.png "Multi Cooker Example")
 ![Lovelace button to start cooking](lovelace_advanced_example_multi_cooker_1.png "Multi Cooker Example")
@@ -249,28 +244,15 @@ sensor:
         friendly_name: "Remaining Cooking Time"
         icon_template: "mdi:clock-outline"
         value_template: >
-            {% if is_state('sensor.xiaomi_miio_cooker_mode', 'Waiting') %}
-              0:00
-            {% else %}
-              {% if is_state('sensor.xiaomi_miio_cooker_mode', 'PreCook') %}
-                {{ ('%02d' % (((states('sensor.xiaomi_miio_cooker_cooking_delayed') | int) / 60) | int)) | string + ':' + ( ('%02d' % ((states('sensor.xiaomi_miio_cooker_cooking_delayed') | int) % 60)) | string) }}
-              {% else %}
-                {{ ('%02d' % (((states('sensor.xiaomi_miio_cooker_remaining') | int) / 60) | int)) | string + ':' + ( ('%02d' % ((states('sensor.xiaomi_miio_cooker_remaining') | int) % 60)) | string) }}
-              {% endif %}
-            {% endif %}
-      cooker_menu:
-        friendly_name: "Menu"
-        icon_template: "mdi:menu"
-        value_template: >
-          {{
-            {
-              "0000000000000000000000000000000000000001": "Fine Rice",
-              "0101000000000000000000000000000000000002": "Quick Rice",
-              "0202000000000000000000000000000000000003": "Congee",
-              "0303000000000000000000000000000000000004": "Keep warm",
-              "0505000000000000000000000000000000000009": "Cake"
-            }[states('sensor.xiaomi_miio_cooker_menu')]
-          }}
+          {% if is_state('sensor.xiaomi_miio_cooker_mode', 'Waiting') %}
+            0:00
+          {% elif is_state('sensor.xiaomi_miio_cooker_mode', 'unknown') %}
+            0:00
+          {% elif is_state('sensor.xiaomi_miio_cooker_mode', 'PreCook') %}
+            {{ ('%02d' % (((states('sensor.xiaomi_miio_cooker_cooking_delayed') | int) / 60) | int)) | string + ':' + ( ('%02d' % ((states('sensor.xiaomi_miio_cooker_cooking_delayed') | int) % 60)) | string) }}
+          {% else %}
+            {{ ('%02d' % (((states('sensor.xiaomi_miio_cooker_remaining') | int) / 60) | int)) | string + ':' + ( ('%02d' % ((states('sensor.xiaomi_miio_cooker_remaining') | int) % 60)) | string) }}
+          {% endif %}
 
 input_datetime:
   rice_cooker_schedule_time:
@@ -352,11 +334,11 @@ Start cooking a profile.
 |---------------------------|----------|----------------------------------------------------------------------|
 | `profile`                 |       no | Profile data which describes the temperature curve.                  |
 
-Some cooking profile examples: https://raw.githubusercontent.com/rytilahti/python-miio/master/miio/data/cooker_profiles.json
+Some cooking profile examples: <https://raw.githubusercontent.com/rytilahti/python-miio/master/miio/data/cooker_profiles.json>
 
-- `MODEL_PRESSURE`: `chunmi.cooker.press1`, `chunmi.cooker.press2`
-- `MODEL_NORMAL_GROUP1`: `chunmi.cooker.normal2`, `chunmi.cooker.normal5`
-- `MODEL_NORMAL_GROUP2`: `chunmi.cooker.normal3`, `chunmi.cooker.normal4`
+* `MODEL_PRESSURE`: `chunmi.cooker.press1`, `chunmi.cooker.press2`
+* `MODEL_NORMAL_GROUP1`: `chunmi.cooker.normal2`, `chunmi.cooker.normal5`
+* `MODEL_NORMAL_GROUP2`: `chunmi.cooker.normal3`, `chunmi.cooker.normal4`
 
 #### Service `xiaomi_miio_cooker.stop`
 
